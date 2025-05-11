@@ -1,25 +1,27 @@
 "use client"
 import { FiArrowUpRight } from "react-icons/fi";
-import { useState, useEffect, useContext } from "react";
-import TextArea from "./components/textarea";
+import { useState, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { createNote, createTitle } from "./services/createServices";
 import { NoteContext } from "./context/noteContext";
 import { getNotesByUser } from "./services/fetchServices";
+import { AuthContext } from "./context/authContext";
 
 const suggestions = [
-  "Summarize this article",
-  "Generate an outline",
-  "Write a hook sentence",
-  "Fix grammar issues",
-  "Explain this code",
-  "Make it more concise",
+  "Doctoral Thesis",
+  "Email for Work",
+  "Medical Appeal Letter",
+  "College Application Essay",
+  "Fantasy Novel Draft",
+  "Essay on Monkeys",
 ];
 
 const Page = () => {
    const [subject, setSubject] = useState("")
    const router = useRouter()
    const {setNotes} = useContext(NoteContext)
+   const {currentUser} = useContext(AuthContext)
+   const userId = currentUser || 0 //change in prod
 
    const handleClick = async() => {
       if (subject.trim() == "") {
@@ -27,20 +29,20 @@ const Page = () => {
       }
 
       const title = await createTitle(subject)
-      const noteId = await createNote(1, "", title)
-      const updatedNotes = await getNotesByUser(1)
+      const noteId = await createNote(userId, "", title)
+      const updatedNotes = await getNotesByUser(userId)
       setNotes(updatedNotes)
       router.push(`/note/${noteId}`)
    }
 
    return (
-<div className="flex flex-col flex-1 overflow-hidden items-center justify-center px-4 py-1 bg-gradient-to-b from-white via-blue-50 to-white">
+      <div className="flex flex-col flex-1 overflow-hidden items-center justify-center px-4 py-1 bg-gradient-to-b from-white via-blue-50 to-white">
          <div className={`w-full max-w-3xl text-center mt-36`}>
-            <h1 className="text-3xl font-semibold mb-2 bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-semibold mb-2 bg-gradient-to-r from-blue-500 to-indigo-700 bg-clip-text text-transparent">
             What are you working on today?
             </h1>
 
-            {<p className="text-md">Enter a short description of what you're working on</p>}
+            <p className="text-md">Enter a short description of what you're working on</p>
             <div className="relative w-full my-6">
                <input
                   type="text"
@@ -55,16 +57,15 @@ const Page = () => {
                      }
                   }}
                />
-               {<button
+               <button
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-2 cursor-pointer hover:shadow-lg bg-gradient-to-r from-blue-500 to-indigo-600 hover:bg-blue-600 text-white rounded-full shadow-sm transition"
                   onClick={handleClick}
                >
                   <FiArrowUpRight className="w-4 h-4" />
-               </button>}
+               </button>
             </div>
 
-            {/* Suggestions Grid */}
-            {<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-4">
                {suggestions.map((text, index) => (
                   <button
                   key={index}
@@ -73,7 +74,7 @@ const Page = () => {
                   {text}
                   </button>
                ))}
-            </div>}
+            </div>
          </div>
       </div>
    );

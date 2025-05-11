@@ -4,17 +4,17 @@ import jwt from "jsonwebtoken"
 import { serialize } from "cookie";
 
 export const login = (req, res) => {
-   const query = "SELECT * FROM users WHERE email = ?";
+   const query = "SELECT * FROM users WHERE username = ?";
 
    console.log(req.body)
 
-   db.query(query, [req.body.email], (err, data) => {
+   db.query(query, [req.body.username], (err, data) => {
       if (err) return res.status(500).json("Server error");
       if (data.length === 0) return res.status(404).json("User not found");
    
       const isPasswordCorrect = bcrypt.compareSync(
          req.body.password,
-         data[0].password_hash 
+         data[0].password 
       );
    
       if (!isPasswordCorrect) {
@@ -22,19 +22,22 @@ export const login = (req, res) => {
          return res.status(400).json("Password is incorrect");
       }
 
-      const token = jwt.sign({id: data[0].id, userType: data[0].role}, "jwtkey")
+      const token = jwt.sign({id: data[0].id}, "jwtkey")
+      console.log(token)
+      console.log("sadfsdfsdf")
 
       const cookie = serialize("session", token, {
          httpOnly: true,
-         secure: true,
+         secure: false,
          maxAge: 60 * 60 * 24,
          path: "/",
-         sameSite: "none"
+         sameSite: "lax"
       });
 
+      console.log("cookie", cookie)
       res.setHeader("Set-Cookie", cookie)
-      const {password, id, role, ...userData} = data[0]
-      res.status(200).json({id: id, role: role});
+      const {password, id, ...userData} = data[0]
+      res.status(200).json({id: id});
    });
 };
 
@@ -54,13 +57,11 @@ export const createUser = (req, res) => {
       const salt = bcrypt.genSaltSync(10);
       const hash = bcrypt.hashSync(req.body.password, salt);
 
-      const query = "INSERT INTO users (`username`, `email`, `password_hash`) VALUES (?)"
+      const query = "INSERT INTO users (`username`, `email`, `password`) VALUES (?)"
       const values = [
          req.body.username,
-         req.body.lastName,
          req.body.email,
          hash,
-
       ]
   
       db.query(query, [values], (err, data) => {
@@ -70,3 +71,18 @@ export const createUser = (req, res) => {
    })
 }
 
+export const getCurrentUser = (req, res) => {
+   const token = req.cookies.session
+   console.log("cookies", req.cookies)
+   // console.log("token \n", req.cookies.session, "\n")
+   const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+console.log("decoded", decoded);
+
+   if (!token) return res.status(401).json("Not authenticated");
+
+   jwt.verify(token, "jwtkey", (err, data) => {
+      if (err) return res.status(403).json("Token is not Valid")
+      
+      res.status(200).json({id: data.id})
+   })
+}

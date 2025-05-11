@@ -19,3 +19,16 @@ export const getNotesByUser = async(id) => {
       console.log(err)
    }
 }
+
+export const getCurrentUser = async() => {
+   try {
+      const response = await axios.get(`${API_BASE_URL}/auth/getCurrentUser`, {
+         withCredentials: true,
+      });
+      console.log(response.data)
+      return response.data
+   } catch (err) {
+      console.log(err)
+      return null
+   }
+}

@@ -17,7 +17,7 @@ const NoteBar = ({ showNoteBar, setShowNoteBar }) => {
       <div
          className={`${
          showNoteBar ? "w-96" : "hidden"
-         } min-h-screen bg-white px-4 py-2 flex flex-col text-sm text-gray-800 shadow-md`}
+         } min-h-screen bg-gray-50 px-4 py-2 flex flex-col text-sm text-gray-800 shadow-md`}
       >
          {/* Close Button */}
          <div className="flex justify-end mb-4">
@@ -32,10 +32,10 @@ const NoteBar = ({ showNoteBar, setShowNoteBar }) => {
 
          {/* Autofill Suggestions */}
          <div className="mb-6">
-            <h2 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+            <h2 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide bg-gradient-to-r from-blue-500 to-indigo-700 bg-clip-text text-transparent">
                Autofill Suggestions
             </h2>
-            <p className="text-xs text-gray-500 mb-1">
+            <p className="text-xs text-gray-500 mb-1 ">
                These will auto-complete your thoughts as you type:
             </p>
             <div className="space-y-2">
@@ -56,8 +56,9 @@ const NoteBar = ({ showNoteBar, setShowNoteBar }) => {
          </div>
 
          {/* Notes & Context */}
-         <div className="border-t pt-5">
-            <h2 className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">
+         
+         <div className="border-t pt-5 border-gradient-to-r from-blue-500 to-indigo-700">
+            <h2 className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide bg-gradient-to-r from-blue-500 to-indigo-700 bg-clip-text text-transparent">
                External Context & Additional Info
             </h2>
             <p className="text-xs text-gray-500 mb-3">

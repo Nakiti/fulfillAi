@@ -8,13 +8,15 @@ import { FiSave } from "react-icons/fi"
 import { updateNote } from "@/app/services/updateServices"
 import { NoteContext } from "@/app/context/noteContext"
 import { FaRegCheckCircle } from "react-icons/fa";
-
+import { AuthContext } from "@/app/context/authContext"
 
 const NotePage = () => {
    const [data, setData] = useState(null)
    const params = useParams()
    const {noteId} = params
    const {textContent, setTextContent, title, setTitle, setSaved, saved} = useContext(NoteContext)
+   const {currentUser} = useContext(AuthContext)
+   const userId = currentUser || 0 //change in prod, --> save logged out user in local storage
 
    useEffect(() => {
       const fetchData = async() => {
@@ -28,7 +30,7 @@ const NotePage = () => {
    }, [])
 
    const handleSave = async() => {
-      await updateNote(1, noteId, textContent)
+      await updateNote(userId, noteId, textContent)
       setSaved(true)
    }
 

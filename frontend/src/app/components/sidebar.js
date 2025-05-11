@@ -7,12 +7,16 @@ import { useContext, useEffect } from "react";
 import { NoteContext } from "../context/noteContext";
 import { useParams } from "next/navigation";
 import { FiTrash } from "react-icons/fi";
+import { AuthContext } from "../context/authContext";
 
 const Sidebar = ({showSideBar, setShowSideBar, setShowNoteBar}) => {
    const router = useRouter()
    const {setNoteBarContent, notes} = useContext(NoteContext)
    const params = useParams()
    const {noteId} = params
+   const {currentUser} = useContext(AuthContext)
+
+   console.log(currentUser)
 
    const handleNew = () => {
       router.push("/")
@@ -89,10 +93,10 @@ const Sidebar = ({showSideBar, setShowSideBar, setShowNoteBar}) => {
             <span className="text-sm font-medium">New Chat</span>
          </button>
 
-         {grouped && Object.entries(grouped).map(([label, items]) =>
+         {currentUser && grouped && Object.entries(grouped).map(([label, items]) =>
             items.length > 0 ? (
                <div key={label} className="mb-2">
-                  <h2 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+                  <h2 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide bg-gradient-to-r from-blue-500 to-indigo-700 bg-clip-text text-transparent">
                      {label}
                   </h2>
                   <div className="space-y-1">
@@ -109,6 +113,7 @@ const Sidebar = ({showSideBar, setShowSideBar, setShowNoteBar}) => {
                </div>
             ) : null
          )}
+         {!currentUser && <p className="text-center bg-gradient-to-r from-blue-500 to-indigo-700 bg-clip-text text-transparent">Login to save notes!</p>}
       </div>
    );
 };

@@ -35,3 +35,22 @@ export const createTitle = async(textContent) => {
 
 }
 
+export const register = async(username, email, password) => {
+   try {
+      const response = await axios.post(`${API_BASE_URL}/auth/register`, {username, email, password})
+   } catch (err) {
+      console.log(err)
+   }
+}
+
+export const login = async(username, password) => {
+   try {
+    const response = await axios.post(
+      `${API_BASE_URL}/auth/login`,
+      { username, password },
+      { withCredentials: true }
+    );
+   } catch (err) {
+      console.log(err)
+   }
+}
