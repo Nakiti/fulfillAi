@@ -1,6 +1,5 @@
 import { db } from "../db.js";
 
-
 export const getUser = (req, res) => {
    const query = "SELECT * FROM users WHERE `id` = ?"
 

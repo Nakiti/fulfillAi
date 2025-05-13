@@ -22,7 +22,7 @@ export const login = (req, res) => {
          return res.status(400).json("Password is incorrect");
       }
 
-      const token = jwt.sign({id: data[0].id}, "jwtkey")
+      const token = jwt.sign({id: data[0].id, tier: data[0].tier}, "jwtkey")
       console.log(token)
       console.log("sadfsdfsdf")
 
@@ -36,13 +36,21 @@ export const login = (req, res) => {
 
       console.log("cookie", cookie)
       res.setHeader("Set-Cookie", cookie)
-      const {password, id, ...userData} = data[0]
-      res.status(200).json({id: id});
+      const {password, id, tier, ...userData} = data[0]
+      console.log(id, tier)
+      res.status(200).json({id: id, tier: tier});
    });
 };
 
 export const logout = (req, res) => {
-   res.setHeader('Set-Cookie', 'session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; HttpOnly;');
+   const expiredCookie = serialize("session", "", {
+      httpOnly: true,
+      secure: false,            
+      sameSite: "lax",            
+      path: "/",                   
+      expires: new Date(0),        
+   });
+   res.setHeader("Set-Cookie", expiredCookie);
    res.status(200).json({ message: 'Logged out' });
    console.log("ayo")
 }
@@ -76,13 +84,35 @@ export const getCurrentUser = (req, res) => {
    console.log("cookies", req.cookies)
    // console.log("token \n", req.cookies.session, "\n")
    const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-console.log("decoded", decoded);
+   console.log("decoded", decoded);
 
    if (!token) return res.status(401).json("Not authenticated");
 
-   jwt.verify(token, "jwtkey", (err, data) => {
-      if (err) return res.status(403).json("Token is not Valid")
-      
-      res.status(200).json({id: data.id})
-   })
+   jwt.verify(token, "jwtkey", (err, decoded) => {
+      if (err) return res.status(403).json("Token is not valid");
+
+      const userId = decoded.id;
+
+      db.query("SELECT tier FROM users WHERE id = ?", [userId], (err, data) => {
+         if (err) return res.status(500).json("Database error");
+
+         const latestTier = data[0]?.tier
+
+         if (decoded.tier !== latestTier) {
+            const updatedToken = jwt.sign({ id: userId, tier: latestTier }, "jwtkey");
+
+            const cookie = serialize("session", updatedToken, {
+               httpOnly: true,
+               secure: false,
+               maxAge: 60 * 60 * 24,
+               path: "/",
+               sameSite: "lax"
+            });
+
+            res.setHeader("Set-Cookie", cookie);
+         }
+
+         res.status(200).json({ id: userId, tier: latestTier });
+      });
+   });
 }

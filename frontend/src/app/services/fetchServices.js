@@ -32,3 +32,12 @@ export const getCurrentUser = async() => {
       return null
    }
 }
+
+export const getUser = async(id) => {
+   try {
+      const response = await axios.get(`${API_BASE_URL}/user/get/${id}`)
+      return response.data
+   } catch (err) {
+      console.log(err)
+   }
+}

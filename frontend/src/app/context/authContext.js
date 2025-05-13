@@ -1,7 +1,7 @@
 "use client";
-import { createContext, useEffect, useState } from "react";
+import { createContext, use, useEffect, useState } from "react";
 import { getCurrentUser } from "../services/fetchServices";
-import { login } from "../services/createServices";
+import { login, logout } from "../services/createServices";
 
 export const AuthContext = createContext()
 
@@ -9,29 +9,38 @@ export const AuthContext = createContext()
 
 export const AuthContextProvider = ({children}) => {
    const [currentUser, setCurrentUser] = useState(null);
-   const [loading, setLoading] = useState(true)
+   const [authLoading, setAuthLoading] = useState(true)
+   const [userTier, setUserTier] = useState(null)
  
    useEffect(() => {
       // always checks that user is logged in
-      const fetchData = async () => {
-         const response = await getCurrentUser()
-         console.log("from auth context ", response?.id)
-         setCurrentUser(response?.id)
-         console.log("currentUser ", currentUser)
-         setLoading(false)
-      }
+
       
       fetchData()
    }, []);
 
+   const fetchData = async () => {
+      const response = await getCurrentUser()
+      console.log("from auth context ", response)
+      setCurrentUser(response?.id)
+      setUserTier(response?.tier)
+      console.log("currentUser ", currentUser)
+      setAuthLoading(false)
+   }
+
    const loginUser = async(username, password) => {
       const loginResponse = await login(username, password)
       setCurrentUser(loginResponse?.id)
-      return loginResponse
+      await fetchData()
+   }
+
+   const logoutUser = async() => {
+      await logout()
+      setCurrentUser(null)
    }
 
    return (
-      <AuthContext.Provider value={{currentUser, loading, setCurrentUser, loginUser}}>
+      <AuthContext.Provider value={{currentUser, authLoading, setCurrentUser, loginUser, logoutUser, userTier}}>
          {children}
       </AuthContext.Provider>
    );

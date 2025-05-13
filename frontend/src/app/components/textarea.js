@@ -1,17 +1,53 @@
-import { useEffect, useState, useRef, useContext, useCallback } from "react"
+import { useEffect, useState, useRef, useContext } from "react";
 import { NoteContext } from "../context/noteContext";
-import debounce from "lodash/debounce"
+import debounce from "lodash/debounce";
 import { autofill } from "../services/createServices";
 import { FiClipboard } from "react-icons/fi";
+import { AuthContext } from "../context/authContext";
 
 const TextArea = () => {
-  const {textContent, setTextContent, noteBarContent, setNoteBarContent, setPrevContent, title, saved, setSaved} = useContext(NoteContext)
-  const textareaRef = useRef(null);
-  const [copied, setCopied] = useState(false);
+   const {
+      textContent, setTextContent,
+      noteBarContent, setNoteBarContent,
+      setPrevContent, title,
+      saved, setSaved, loading, setLoading, setErrorMessage, setError, setSelectedAuto, setSelectedRephrase
+   } = useContext(NoteContext);
+   const {currentUser} = useContext(AuthContext)
+
+   const textareaRef = useRef(null);
+   const [copied, setCopied] = useState(false);
+   const debouncedChangeRef = useRef(null);
+
+   useEffect(() => {
+      // Create the debounced function once
+      debouncedChangeRef.current = debounce(async (query) => {
+         if (!query.trim()) {
+            setNoteBarContent("");
+            return;
+         }
+         setLoading(true);
+         const response = await autofill(query, title, currentUser);
+         console.log("response", response)
+         if (response == 403) {
+            setError(true)
+            setErrorMessage("Max Queries Reached. Upgrade Plan or Try Again in x hours")
+         } else if (typeof response === "number") {
+            setError(true)
+            setErrorMessage("Error. Try Again Later")
+         } else {
+            setNoteBarContent(response);
+            setLoading(false);
+         }
+      }, 500); // Adjust delay as needed
+
+      return () => {
+         debouncedChangeRef.current.cancel(); // Clean up on unmount
+      };
+   }, []);
 
    useEffect(() => {
       if (textareaRef.current) {
-         textareaRef.current.style.height = "auto"; // Reset
+         textareaRef.current.style.height = "auto";
          textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
       }
    }, [textContent]);
@@ -26,35 +62,23 @@ const TextArea = () => {
    const handleChange = (e) => {
       const value = e.target.value;
       setTextContent(value);
-      setPrevContent(value)
-      debouncedChange(value);
-      setSaved(false)
+      setPrevContent(value);
+      setSaved(false);
+      setSelectedAuto(null)
+      setSelectedRephrase(null)
+      debouncedChangeRef.current(value); // call the debounced function
    };
 
-   const debouncedChange = useCallback(
-   debounce(async (query) => {
-         console.log(query)
-         if (!query.trim()) {
-            setNoteBarContent("")
-            return
-         };
-         const response = await autofill(query, title);
-         setNoteBarContent(response);
-      }, 
-   300), []);
-
    return (
-      <div className="relative max-w-4xl w-full ">
-         {/* Copy Button */}
+      <div className="relative max-w-4xl w-full">
          <button
-            onClick={handleCopy}
-            className="absolute cursor-pointer top-2 right-2 p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition"
-            title="Copy text"
+         onClick={handleCopy}
+         className="absolute cursor-pointer bottom-3 right-1 p-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition"
+         title="Copy text"
          >
-            <FiClipboard className="w-3 h-3" />
+         <FiClipboard className="w-3 h-3" />
          </button>
 
-         {/* Textarea */}
          <textarea
             ref={textareaRef}
             value={textContent}
@@ -64,14 +88,13 @@ const TextArea = () => {
             rows={1}
          />
 
-         {/* Copied Feedback */}
          {copied && (
          <span className="absolute bottom-2 right-4 text-xs text-green-600">
             Copied!
          </span>
          )}
       </div>
-   )
-}
+   );
+};
 
-export default TextArea
+export default TextArea;

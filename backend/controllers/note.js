@@ -129,4 +129,29 @@ export const updateNote = async (req, res) => {
       console.error(err);
       return res.status(500).json({ error: "Failed to upload or update note" });
    }
-};
+}; 
+
+export const deleteNote = async (req, res) => {
+   console.log(req) 
+
+   try {
+      const containerClient = blobServiceClient.getContainerClient(containerName)
+      const blobName = req.body.blobUrl.split("notes/")[1]
+      const blockBlobClient = containerClient.getBlockBlobClient(blobName)
+
+      const deleteResponse = await blockBlobClient.delete()
+      console.log(deleteResponse)
+
+      const query = "DELETE FROM notes WHERE `id` = ?"
+
+      const value = [req.params.id]
+
+      db.query(query, value, (err, data) => {
+         if (err) return res.json(err)
+         return res.status(200).json(data)
+      })
+   } catch (err) {
+      console.log(err)
+      return res.json(err)
+   }
+}

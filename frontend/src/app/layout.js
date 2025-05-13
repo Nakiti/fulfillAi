@@ -11,8 +11,7 @@ import { AuthContextProvider } from "./context/authContext";
 export default function RootLayout({ children }) {
    const pathname = usePathname()
    const isAuth = pathname.split("/")[1] == "auth"
-   const [showSidebar, setShowSidebar] = useState(false)
-   const [showNoteBar, setShowNoteBar] = useState(false)
+
 
    return (
       <html lang="en" className="h-full">
@@ -20,14 +19,12 @@ export default function RootLayout({ children }) {
             <div className="flex min-h-screen">
                <AuthContextProvider>
                   <NoteContextProvider>
-                     {<Sidebar showSideBar={showSidebar} setShowSideBar={setShowSidebar} setShowNoteBar={setShowNoteBar}/>}
-
+                     <Sidebar />
                      <div className="flex flex-col flex-1 overflow-hidden">
-                        <Header isAuth={isAuth} showSideBar={showSidebar} showNoteBar={showNoteBar} setShowSideBar={setShowSidebar} setShowNoteBar={setShowNoteBar}/>
+                        <Header isAuth={isAuth} />
                         <main className="flex-1 overflow-y-auto">{children}</main>
                      </div>
-
-                     <NoteBar showNoteBar={showNoteBar} setShowNoteBar={setShowNoteBar}/>
+                     <NoteBar />
                   </NoteContextProvider>
                </AuthContextProvider>
             </div>
